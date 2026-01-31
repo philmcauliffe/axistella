@@ -2,34 +2,21 @@ import json
 import asyncio
 from js import document, window, console
 
-# Pool curated from your goals: Autonomy, Stoicism, VFX Mastery, and BJJ
-VALUE_POOL = [
-    "Autonomy", "Discipline", "Creativity", "Stoicism", "Mastery", 
-    "Courage", "Vitality", "Community", "Resilience", "Precision",
-    "Adaptability", "Legacy", "Truth", "Service", "Curiosity"
-]
-
+dynamic_value_pool = [] 
 selected_values = set()
 
 async def startup():
-    """Reads config.json and warms up the Supabase bridge."""
-    # Give PyScript a moment to mount the fetched file
     await asyncio.sleep(0.5) 
-    
     try:
         with open("config.json", "r") as f:
             config = json.load(f)
         
-        # Pass the keys to the JS helper
         window.initSupabase(config["SB_URL"], config["SB_KEY"])
-        
         document.getElementById("status").innerText = "SYSTEM ONLINE"
-        console.log("Supabase initialized from config.json")
     except Exception as e:
         console.error(f"Startup Error: {e}")
         document.getElementById("status").innerText = "OFFLINE: CONFIG ERROR"
 
-# Trigger the startup sequence
 asyncio.ensure_future(startup())
 
 async def handle_login(event):
@@ -62,10 +49,27 @@ async def handle_signup(event):
         window.alert("Identity Created. You may now Sign In.")
 
 async def run_transition_sequence():
-    """Choreographs the transition from Login to Discovery."""
+    """Choreographs transition and fetches live data."""
     # 1. Hide Login
     gate = document.getElementById("auth-gate")
     gate.classList.add("opacity-0", "scale-95")
+    
+    # NEW: Fetch values while the animation plays
+    status = document.getElementById("status")
+    status.innerText = "SYNCING CONSTELLATION..."
+    
+    res = await window.authHelper.fetchValues()
+    
+    if res.error:
+        console.error(f"Data Fetch Error: {res.error.message}")
+        # Fallback to a few defaults if DB fails
+        global dynamic_value_pool
+        dynamic_value_pool = [{"value_name": "Resilience"}, {"value_name": "Purpose"}]
+    else:
+        # Convert JS Proxy/List to Python List
+        dynamic_value_pool = res.data.to_py()
+        status.innerText = "SYSTEM ONLINE"
+
     await asyncio.sleep(0.7)
     gate.classList.add("hidden")
 
@@ -85,7 +89,7 @@ async def run_transition_sequence():
     # 4. Reveal Constellation
     view = document.getElementById("constellation-view")
     view.classList.remove("hidden")
-    render_constellation()
+    render_constellation() # Now uses dynamic_value_pool
     await asyncio.sleep(0.1)
     view.classList.remove("opacity-0")
 
@@ -93,16 +97,28 @@ def render_constellation():
     cloud = document.getElementById("values-cloud")
     cloud.innerHTML = ""
     
-    for i, val in enumerate(VALUE_POOL):
+    # Shuffle or slice if you want a random subset
+    for i, item in enumerate(dynamic_value_pool):
+        val = item['value_name']
+        cat = item['value_categories']['name']
+        
         btn = document.createElement("button")
         
-        # Varying visual weights for a 'constellation' feel
-        weight = "font-black text-xl" if i % 3 == 0 else "font-medium text-sm"
-        delay = i * 0.2
+        # Style based on Category or Index
+        weight = "font-black text-xl" if i % 4 == 0 else "font-medium text-sm"
         
-        btn.className = f"value-node transition-all duration-500 px-6 py-3 rounded-full border border-zinc-900 bg-zinc-900/30 hover:border-amber-500 hover:text-amber-500 {weight}"
-        btn.style.animationDelay = f"{delay}s"
+        # Color coding by category (Tailwind classes)
+        cat_colors = {
+            "Strength": "hover:text-red-400 hover:border-red-400",
+            "Intelligence": "hover:text-blue-400 hover:border-blue-400",
+            "Integrity": "hover:text-green-400 hover:border-green-400"
+        }
+        accent = cat_colors.get(cat, "hover:text-amber-500 hover:border-amber-500")
+
+        btn.className = f"value-node transition-all duration-500 px-6 py-3 rounded-full border border-zinc-900 bg-zinc-900/30 {accent} {weight}"
+        btn.style.animationDelay = f"{i * 0.1}s"
         btn.innerText = val
+        btn.title = f"Category: {cat}" # Shows category on hover
         btn.onclick = lambda e, v=val: toggle_value(v)
         
         cloud.appendChild(btn)
