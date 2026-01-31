@@ -32,11 +32,7 @@
                 async fetchValues() {
                     return await sb
                         .from('values_list')
-                        .select(`
-                            value_name,
-                            definition,
-                            value_categories ( name )
-                        `);
+                        .select('value_name'); // Just grab the names for now
                 }
             };
         };
