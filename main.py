@@ -65,7 +65,7 @@ async def run_transition_sequence():
         
         # 2. Pick 30 random values from your database
         global dynamic_value_pool
-        if len(all_names) > 30:
+        if len(all_names) > 15:
             dynamic_value_pool = random.sample(all_names, 15)
         else:
             dynamic_value_pool = all_names
