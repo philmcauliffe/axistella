@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axistella | Core Discovery</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .value-node { animation: float 4s ease-in-out infinite; }
+        .glass { background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(12px); }
+    </style>
+
+  <script>
+          window.initSupabase = (url, key) => {
+            const sb = supabase.createClient(url, key);
+            window.authHelper = {
+                async signIn(email, password) {
+                    return await sb.auth.signInWithPassword({ email, password });
+                },
+                async signUp(email, password) {
+                    return await sb.auth.signUp({ email, password });
+                }
+            };
+        };
+    </script>
+
+    <py-config>
+        [[fetch]]
+        files = ["config.json"]
+    </py-config>
+</head>
+
+<body class="bg-zinc-950 text-zinc-100 min-h-screen font-sans overflow-x-hidden">
+
+    <nav class="p-6 flex justify-between items-center border-b border-zinc-900 sticky top-0 z-50 glass">
+        <h1 class="text-2xl font-black text-amber-500 italic tracking-tighter">AXISTELLA</h1>
+        <div id="status" class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">System Ready</div>
+    </nav>
+
+    <main class="relative max-w-5xl mx-auto p-6 min-h-[80vh] flex items-center justify-center">
+
+        <section id="auth-gate" class="bg-zinc-900 p-8 rounded-2xl border border-zinc-800 w-full max-w-md shadow-2xl transition-all duration-700">
+            <div class="space-y-6">
+                <div class="space-y-4">
+                    <input id="email" type="email" placeholder="Email" class="w-full bg-zinc-950 p-4 rounded-xl border border-zinc-800 focus:border-amber-600 outline-none transition">
+                    <input id="password" type="password" placeholder="Password" class="w-full bg-zinc-950 p-4 rounded-xl border border-zinc-800 focus:border-amber-600 outline-none transition">
+                </div>
+                <div class="flex gap-4">
+                    <button py-click="handle_login" class="flex-1 bg-amber-600 p-4 rounded-xl font-bold hover:bg-amber-500 transition shadow-lg shadow-amber-900/20">Sign In</button>
+                    <button py-click="handle_signup" class="flex-1 border border-amber-600 text-amber-500 p-4 rounded-xl font-bold hover:bg-amber-600/10 transition">Sign Up</button>
+                </div>
+            </div>
+        </section>
+
+        <div id="intro-stage" class="hidden fixed inset-0 flex items-center justify-center pointer-events-none z-40">
+            <h2 id="intro-text" class="text-4xl md:text-6xl font-black text-white italic opacity-0 transition-all duration-1000 transform translate-y-8 text-center px-6">
+                Let's discover your <span class="text-amber-500">core values</span>
+            </h2>
+        </div>
+
+        <section id="constellation-view" class="hidden w-full opacity-0 transition-all duration-1000 py-12">
+            <div class="text-center mb-12 space-y-2">
+                <h3 class="text-zinc-500 uppercase tracking-[0.4em] text-[10px] font-bold">The Discovery Cloud</h3>
+                <p class="text-zinc-400 text-sm italic">Select the parameters that anchor your 2026 axis.</p>
+            </div>
+
+            <div id="values-cloud" class="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
+                </div>
+
+            <div class="fixed bottom-12 left-1/2 -translate-x-1/2 z-50">
+                <div id="selection-counter" class="bg-zinc-900/80 border border-amber-500/30 px-8 py-3 rounded-full text-amber-500 font-bold shadow-2xl backdrop-blur-md">
+                    0 / 5 Selected
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="py" src="main.py"></script>
+</body>
+</html>
