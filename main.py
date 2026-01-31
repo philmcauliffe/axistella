@@ -2,6 +2,7 @@ import json
 import asyncio
 from js import document, window, console
 
+global dynamic_value_pool
 selected_values = set()
 
 async def startup():
@@ -63,7 +64,6 @@ async def run_transition_sequence():
         all_names = [item['value_name'] for item in raw_data]
         
         # 2. Pick 30 random values from your database
-        global dynamic_value_pool
         if len(all_names) > 15:
             dynamic_value_pool = random.sample(all_names, 15)
         else:
