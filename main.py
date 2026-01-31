@@ -54,11 +54,24 @@ async def run_transition_sequence():
     gate = document.getElementById("auth-gate")
     gate.classList.add("opacity-0", "scale-95")
     
-    # NEW: Fetch values while the animation plays
     status = document.getElementById("status")
     status.innerText = "SYNCING CONSTELLATION..."
     
     res = await window.authHelper.fetchValues()
+    if res.data:
+        # Convert to Python list of strings
+        raw_data = res.data.to_py()
+        all_names = [item['value_name'] for item in raw_data]
+        
+        # 2. Pick 30 random values from your database
+        global dynamic_value_pool
+        if len(all_names) > 30:
+            dynamic_value_pool = random.sample(all_names, 30)
+        else:
+            dynamic_value_pool = all_names
+            random.shuffle(dynamic_value_pool)
+    else:
+        console.error("Fetch failed or returned no data")
     
     if res.error:
         console.error(f"Data Fetch Error: {res.error.message}")
@@ -97,35 +110,15 @@ def render_constellation():
     cloud = document.getElementById("values-cloud")
     cloud.innerHTML = ""
     
-    for i, item in enumerate(dynamic_value_pool):
-        # 1. Extract name with safety
-        val = item.get('value_name', 'Unknown Value')
-        
-        # 2. Extract category with safety to prevent NoneType error
-        category_data = item.get('value_categories')
-        if category_data:
-            cat = category_data.get('name', 'General')
-        else:
-            cat = 'General'
-        
+    for i, val in enumerate(dynamic_value_pool):
         btn = document.createElement("button")
         
-        # Visual weights
-        weight = "font-black text-xl" if i % 4 == 0 else "font-medium text-sm"
+        # Keep the visual variety
+        weight = "font-black text-xl" if i % 3 == 0 else "font-medium text-sm"
         
-        # Category colors
-        cat_colors = {
-            "Strength": "hover:text-red-400 hover:border-red-400",
-            "Intelligence": "hover:text-blue-400 hover:border-blue-400",
-            "Integrity": "hover:text-green-400 hover:border-green-400",
-            "Spirituality": "hover:text-purple-400 hover:border-purple-400"
-        }
-        accent = cat_colors.get(cat, "hover:text-amber-500 hover:border-amber-500")
-
-        btn.className = f"value-node transition-all duration-500 px-6 py-3 rounded-full border border-zinc-900 bg-zinc-900/30 {accent} {weight}"
+        btn.className = f"value-node transition-all duration-500 px-6 py-3 rounded-full border border-zinc-900 bg-zinc-900/30 hover:border-amber-500 hover:text-amber-500 {weight}"
         btn.style.animationDelay = f"{i * 0.1}s"
         btn.innerText = val
-        btn.title = f"Category: {cat}"
         btn.onclick = lambda e, v=val: toggle_value(v)
         
         cloud.appendChild(btn)
