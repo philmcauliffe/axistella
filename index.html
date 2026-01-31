@@ -28,6 +28,15 @@
                 },
                 async signUp(email, password) {
                     return await sb.auth.signUp({ email, password });
+                },
+                async fetchValues() {
+                    return await sb
+                        .from('values_list')
+                        .select(`
+                            value_name,
+                            definition,
+                            value_categories ( name )
+                        `);
                 }
             };
         };
