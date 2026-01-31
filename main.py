@@ -1,3 +1,4 @@
+import json
 import asyncio
 from js import document, window, console
 
@@ -9,6 +10,27 @@ VALUE_POOL = [
 ]
 
 selected_values = set()
+
+async def startup():
+    """Reads config.json and warms up the Supabase bridge."""
+    # Give PyScript a moment to mount the fetched file
+    await asyncio.sleep(0.5) 
+    
+    try:
+        with open("config.json", "r") as f:
+            config = json.load(f)
+        
+        # Pass the keys to the JS helper
+        window.initSupabase(config["SB_URL"], config["SB_KEY"])
+        
+        document.getElementById("status").innerText = "SYSTEM ONLINE"
+        console.log("Supabase initialized from config.json")
+    except Exception as e:
+        console.error(f"Startup Error: {e}")
+        document.getElementById("status").innerText = "OFFLINE: CONFIG ERROR"
+
+# Trigger the startup sequence
+asyncio.ensure_future(startup())
 
 async def handle_login(event):
     status = document.getElementById("status")
