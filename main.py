@@ -97,28 +97,35 @@ def render_constellation():
     cloud = document.getElementById("values-cloud")
     cloud.innerHTML = ""
     
-    # Shuffle or slice if you want a random subset
     for i, item in enumerate(dynamic_value_pool):
-        val = item['value_name']
-        cat = item['value_categories']['name']
+        # 1. Extract name with safety
+        val = item.get('value_name', 'Unknown Value')
+        
+        # 2. Extract category with safety to prevent NoneType error
+        category_data = item.get('value_categories')
+        if category_data:
+            cat = category_data.get('name', 'General')
+        else:
+            cat = 'General'
         
         btn = document.createElement("button")
         
-        # Style based on Category or Index
+        # Visual weights
         weight = "font-black text-xl" if i % 4 == 0 else "font-medium text-sm"
         
-        # Color coding by category (Tailwind classes)
+        # Category colors
         cat_colors = {
             "Strength": "hover:text-red-400 hover:border-red-400",
             "Intelligence": "hover:text-blue-400 hover:border-blue-400",
-            "Integrity": "hover:text-green-400 hover:border-green-400"
+            "Integrity": "hover:text-green-400 hover:border-green-400",
+            "Spirituality": "hover:text-purple-400 hover:border-purple-400"
         }
         accent = cat_colors.get(cat, "hover:text-amber-500 hover:border-amber-500")
 
         btn.className = f"value-node transition-all duration-500 px-6 py-3 rounded-full border border-zinc-900 bg-zinc-900/30 {accent} {weight}"
         btn.style.animationDelay = f"{i * 0.1}s"
         btn.innerText = val
-        btn.title = f"Category: {cat}" # Shows category on hover
+        btn.title = f"Category: {cat}"
         btn.onclick = lambda e, v=val: toggle_value(v)
         
         cloud.appendChild(btn)
