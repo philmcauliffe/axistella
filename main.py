@@ -3,7 +3,7 @@ import asyncio
 import random
 from js import document, window, console
 
-# 1. Declaration
+# Initializing global state
 dynamic_value_pool = [] 
 selected_values = set()
 
@@ -50,30 +50,38 @@ async def handle_signup(event):
         window.alert("Identity Created. You may now Sign In.")
 
 async def run_transition_sequence():
+    """Choreographs transition and fetches live data."""
+    # 1. Start animations
+    gate = document.getElementById("auth-gate")
+    gate.classList.add("opacity-0", "scale-95")
+    
     status = document.getElementById("status")
     status.innerText = "SYNCING CONSTELLATION..."
     
+    # 2. Fetch data from Supabase
     res = await window.authHelper.fetchValues()
     
     global dynamic_value_pool
-    # Safety Check: Ensure data exists and isn't None
     if res.error or not res.data:
-        console.error("Data Fetch Error")
-        dynamic_value_pool = ["Growth", "Stability", "Discovery", "Vision"]
+        console.error(f"Data Fetch Error")
+        # Fallback values if DB is unreachable
+        dynamic_value_pool = ["Resilience", "Purpose", "Integrity", "Courage", "Growth"]
     else:
-        # Flatten the data into a list of strings immediately
+        # Convert JS Proxy to Python List and flatten to just names
         raw_rows = res.data.to_py()
-        dynamic_value_pool = [row['value_name'] for row in raw_rows]
-        random.shuffle(dynamic_value_pool)
-        # Limit to 40 for performance/visuals
-        dynamic_value_pool = dynamic_value_pool[:40]
+        all_names = [row['value_name'] for row in raw_rows]
+        
+        # Select 40 random values for the cloud
+        if len(all_names) > 40:
+            dynamic_value_pool = random.sample(all_names, 40)
+        else:
+            dynamic_value_pool = all_names
+            random.shuffle(dynamic_value_pool)
 
-    # Animations
-    gate = document.getElementById("auth-gate")
-    gate.classList.add("opacity-0", "scale-95")
     await asyncio.sleep(0.7)
     gate.classList.add("hidden")
 
+    # 3. Show Intro Text
     stage = document.getElementById("intro-stage")
     text = document.getElementById("intro-text")
     stage.classList.remove("hidden")
@@ -85,6 +93,7 @@ async def run_transition_sequence():
     await asyncio.sleep(0.8)
     stage.classList.add("hidden")
 
+    # 4. Reveal Constellation
     view = document.getElementById("constellation-view")
     view.classList.remove("hidden")
     render_constellation() 
@@ -97,13 +106,15 @@ def render_constellation():
     
     for i, val in enumerate(dynamic_value_pool):
         btn = document.createElement("button")
+        
+        # Assign visual weights randomly
         weight = "font-black text-xl" if i % 4 == 0 else "font-medium text-sm"
         
         btn.className = f"value-node transition-all duration-500 px-6 py-3 rounded-full border border-zinc-900 bg-zinc-900/30 hover:border-amber-500 hover:text-amber-500 {weight}"
         btn.style.animationDelay = f"{i * 0.1}s"
         btn.innerText = val
         
-        # Capture the current value of 'val' in the lambda scope
+        # Critical fix: Use a default argument in the lambda to capture the current value
         btn.onclick = lambda e, v=val: toggle_value(v)
         
         cloud.appendChild(btn)
@@ -112,7 +123,7 @@ def toggle_value(val):
     global selected_values
     btn_list = document.querySelectorAll(".value-node")
     
-    # Find the specific button in the DOM
+    # Find the specific button element for the clicked value
     target_btn = None
     for b in btn_list:
         if b.innerText == val:
