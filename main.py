@@ -70,19 +70,10 @@ async def run_transition_sequence():
         else:
             dynamic_value_pool = all_names
             random.shuffle(dynamic_value_pool)
+            status.innerText = "SYSTEM ONLINE"
     else:
         console.error("Fetch failed or returned no data")
     
-    if res.error:
-        console.error(f"Data Fetch Error: {res.error.message}")
-        # Fallback to a few defaults if DB fails
-        global dynamic_value_pool
-        dynamic_value_pool = [{"value_name": "Cabbages"}, {"value_name": "Purpose"}]
-    else:
-        # Convert JS Proxy/List to Python List
-        dynamic_value_pool = res.data.to_py()
-        status.innerText = "SYSTEM ONLINE"
-
     await asyncio.sleep(0.7)
     gate.classList.add("hidden")
 
