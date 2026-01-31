@@ -1,9 +1,10 @@
 import json
 import asyncio
+import random
 from js import document, window, console
 
-# Force rebuild
-global dynamic_value_pool
+# 1. Declaration
+dynamic_value_pool = [] 
 selected_values = set()
 
 async def startup():
@@ -33,7 +34,6 @@ async def handle_login(event):
         window.alert(f"Error: {res.error.message}")
     else:
         status.innerText = "IDENTITY VERIFIED"
-        # Start the cinematic transition
         await run_transition_sequence()
 
 async def handle_signup(event):
@@ -50,50 +50,44 @@ async def handle_signup(event):
         window.alert("Identity Created. You may now Sign In.")
 
 async def run_transition_sequence():
-    """Choreographs transition and fetches live data."""
-    # 1. Hide Login
-    gate = document.getElementById("auth-gate")
-    gate.classList.add("opacity-0", "scale-95")
-    
     status = document.getElementById("status")
     status.innerText = "SYNCING CONSTELLATION..."
     
     res = await window.authHelper.fetchValues()
-    if res.data:
-        # Convert to Python list of strings
-        raw_data = res.data.to_py()
-        all_names = [item['value_name'] for item in raw_data]
-        
-        # 2. Pick 30 random values from your database
-        if len(all_names) > 15:
-            dynamic_value_pool = random.sample(all_names, 15)
-        else:
-            dynamic_value_pool = all_names
-            random.shuffle(dynamic_value_pool)
-            status.innerText = "SYSTEM ONLINE"
-    else:
-        console.error("Fetch failed or returned no data")
     
+    global dynamic_value_pool
+    # Safety Check: Ensure data exists and isn't None
+    if res.error or not res.data:
+        console.error("Data Fetch Error")
+        dynamic_value_pool = ["Growth", "Stability", "Discovery", "Vision"]
+    else:
+        # Flatten the data into a list of strings immediately
+        raw_rows = res.data.to_py()
+        dynamic_value_pool = [row['value_name'] for row in raw_rows]
+        random.shuffle(dynamic_value_pool)
+        # Limit to 40 for performance/visuals
+        dynamic_value_pool = dynamic_value_pool[:40]
+
+    # Animations
+    gate = document.getElementById("auth-gate")
+    gate.classList.add("opacity-0", "scale-95")
     await asyncio.sleep(0.7)
     gate.classList.add("hidden")
 
-    # 2. Show Intro Text
     stage = document.getElementById("intro-stage")
     text = document.getElementById("intro-text")
     stage.classList.remove("hidden")
     await asyncio.sleep(0.1)
     text.classList.remove("opacity-0", "translate-y-8")
     
-    # 3. Hold and Fade Out Intro
     await asyncio.sleep(2.5)
     text.classList.add("opacity-0", "-translate-y-12")
     await asyncio.sleep(0.8)
     stage.classList.add("hidden")
 
-    # 4. Reveal Constellation
     view = document.getElementById("constellation-view")
     view.classList.remove("hidden")
-    render_constellation()
+    render_constellation() 
     await asyncio.sleep(0.1)
     view.classList.remove("opacity-0")
 
@@ -103,20 +97,27 @@ def render_constellation():
     
     for i, val in enumerate(dynamic_value_pool):
         btn = document.createElement("button")
-        
-        # Keep the visual variety
-        weight = "font-black text-xl" if i % 3 == 0 else "font-medium text-sm"
+        weight = "font-black text-xl" if i % 4 == 0 else "font-medium text-sm"
         
         btn.className = f"value-node transition-all duration-500 px-6 py-3 rounded-full border border-zinc-900 bg-zinc-900/30 hover:border-amber-500 hover:text-amber-500 {weight}"
         btn.style.animationDelay = f"{i * 0.1}s"
         btn.innerText = val
+        
+        # Capture the current value of 'val' in the lambda scope
         btn.onclick = lambda e, v=val: toggle_value(v)
         
         cloud.appendChild(btn)
 
 def toggle_value(val):
+    global selected_values
     btn_list = document.querySelectorAll(".value-node")
-    target_btn = next((b for b in btn_list if b.innerText == val), None)
+    
+    # Find the specific button in the DOM
+    target_btn = None
+    for b in btn_list:
+        if b.innerText == val:
+            target_btn = b
+            break
 
     if val in selected_values:
         selected_values.remove(val)
