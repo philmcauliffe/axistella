@@ -64,7 +64,7 @@ async def run_transition_sequence():
         console.error(f"Data Fetch Error: {res.error.message}")
         # Fallback to a few defaults if DB fails
         global dynamic_value_pool
-        dynamic_value_pool = [{"value_name": "Resilience"}, {"value_name": "Purpose"}]
+        dynamic_value_pool = [{"value_name": "Cabbages"}, {"value_name": "Purpose"}]
     else:
         # Convert JS Proxy/List to Python List
         dynamic_value_pool = res.data.to_py()
