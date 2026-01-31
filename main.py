@@ -2,7 +2,6 @@ import json
 import asyncio
 from js import document, window, console
 
-dynamic_value_pool = [] 
 selected_values = set()
 
 async def startup():
@@ -93,7 +92,7 @@ async def run_transition_sequence():
     # 4. Reveal Constellation
     view = document.getElementById("constellation-view")
     view.classList.remove("hidden")
-    render_constellation() # Now uses dynamic_value_pool
+    render_constellation()
     await asyncio.sleep(0.1)
     view.classList.remove("opacity-0")
 
