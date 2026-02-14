@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
         clientId: kIsWeb ? webClientId : null,
-        serverClientId: webClientId,
+        serverClientId: kIsWeb ? null : webClientId,
       );
 
       final googleUser = await googleSignIn.signIn();
