@@ -7,6 +7,11 @@ on:
     branches: [ "main" ]
 
 jobs:
+- name: Create config.json
+  run: |
+    echo '{"SB_URL": "${{ secrets.SB_URL }}", "SB_KEY": "${{ secrets.SB_KEY }}"}' > assets/config.json
+  shell: bash
+
   build:
     runs-on: ubuntu-latest
 
