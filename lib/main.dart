@@ -9,12 +9,25 @@ import 'package:axistella/login_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final configString = await rootBundle.loadString('assets/config.json');
-  final config = jsonDecode(configString) as Map<String, dynamic>;
+  // 1. Try to load from Environment (Dart Defines) - Best for Prod
+  String sbUrl = const String.fromEnvironment('SB_URL');
+  String sbKey = const String.fromEnvironment('SB_KEY');
+
+  // 2. Fallback to config.json - Best for Local Dev
+  if (sbUrl.isEmpty || sbKey.isEmpty) {
+    try {
+      final configString = await rootBundle.loadString('assets/config.json');
+      final config = jsonDecode(configString) as Map<String, dynamic>;
+      sbUrl = config['SB_URL'] ?? '';
+      sbKey = config['SB_KEY'] ?? '';
+    } catch (e) {
+      // Config file might not exist in Prod if using Dart Defines
+    }
+  }
 
   await Supabase.initialize(
-    url: config['SB_URL'],
-    anonKey: config['SB_KEY'],
+    url: sbUrl,
+    anonKey: sbKey,
   );
 
   runApp(const AxistellaApp());
