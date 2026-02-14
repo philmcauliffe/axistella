@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -54,18 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _googleSignIn() async {
     setState(() => _isLoading = true);
     try {
-      // Web Client ID (from Google Cloud Console > Credentials > Web application)
+      // Web Client ID (Required for Web and Android)
       const webClientId = 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com';
 
-      // iOS Client ID (from Google Cloud Console > Credentials > iOS)
-      const iosClientId = 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com';
-
-      if (webClientId.startsWith('YOUR_') || iosClientId.startsWith('YOUR_')) {
-        throw 'Please configure Google Client IDs in login_screen.dart';
-      }
+      // iOS Client ID (Stubbed for future use)
+      // const iosClientId = 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com';
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: iosClientId,
+        clientId: kIsWeb ? webClientId : null,
         serverClientId: webClientId,
       );
 
