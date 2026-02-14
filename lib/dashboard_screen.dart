@@ -101,7 +101,7 @@ class DashboardScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: isFuture 
                   ? Colors.grey.shade100 
-                  : Colors.green.withOpacity(opacity),
+                  : Colors.green.withValues(alpha: opacity),
               borderRadius: BorderRadius.circular(4),
             ),
           );
