@@ -54,9 +54,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _googleSignIn() async {
     setState(() => _isLoading = true);
     try {
-      // TODO: Replace with your actual Client IDs from Google Cloud Console
+      // Web Client ID (from Google Cloud Console > Credentials > Web application)
       const webClientId = 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com';
+
+      // iOS Client ID (from Google Cloud Console > Credentials > iOS)
       const iosClientId = 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com';
+
+      if (webClientId.startsWith('YOUR_') || iosClientId.startsWith('YOUR_')) {
+        throw 'Please configure Google Client IDs in login_screen.dart';
+      }
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
         clientId: iosClientId,
