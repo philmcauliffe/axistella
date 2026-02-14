@@ -1,0 +1,3 @@
+- name: Create Config File
+  run: |
+    echo '{"SB_URL": "${{ secrets.SB_URL }}", "SB_KEY": "${{ secrets.SB_KEY }}"}' > assets/config.json
