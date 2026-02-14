@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       // Web Client ID (Required for Web and Android)
-      const webClientId = 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com';
+      const webClientId = "1011335665513-ks95u09b0uqitb0u3ej2sdsvh1ur9ug1.apps.googleusercontent.com";
 
       // iOS Client ID (Stubbed for future use)
       // const iosClientId = 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com';
