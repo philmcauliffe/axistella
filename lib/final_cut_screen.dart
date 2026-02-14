@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FinalCutScreen extends StatefulWidget {
   final List<String> rankedValues;
@@ -11,6 +12,42 @@ class FinalCutScreen extends StatefulWidget {
 
 class _FinalCutScreenState extends State<FinalCutScreen> {
   late List<String> _values;
+  bool _isSaving = false;
+
+  Future<void> _saveValues() async {
+    setState(() => _isSaving = true);
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) throw "User not authenticated";
+
+      // Prepare the top 5 (or fewer) values for upsert
+      final topValues = _values.take(5).toList();
+      final updates = List.generate(topValues.length, (index) => {
+        'user_id': user.id,
+        'rank': index + 1,
+        'value': topValues[index],
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      await Supabase.instance.client.from('user_values').upsert(updates);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Primal Five saved successfully!")),
+        );
+        // Return to Dashboard
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error saving: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
 
   @override
   void initState() {
@@ -25,14 +62,10 @@ class _FinalCutScreenState extends State<FinalCutScreen> {
         title: const Text("The Final Cut"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: () {
-              // TODO: Save top 5 to Supabase 'user_values' table
-              // TODO: Navigate to Purpose Statement Generation
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Values saved! Generating purpose...")),
-              );
-            },
+            icon: _isSaving 
+                ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary, strokeWidth: 2)) 
+                : const Icon(Icons.check),
+            onPressed: _isSaving ? null : _saveValues,
           )
         ],
       ),
